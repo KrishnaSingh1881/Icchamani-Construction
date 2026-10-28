@@ -230,6 +230,8 @@ svg {flex-shrink:0}
 .switch {width:38px;height:23px;background:#898c8140;border-radius:20px;padding:3px;transition:background .2s}.switch>span {display:block;background:var(--panel);width:17px;height:17px;border-radius:50%;transition:transform .2s}.switch.on {background:var(--green)}.switch.on>span {transform:translateX(15px)}
 .reset-button {display:flex;align-items:center;gap:10px;background:none;color:var(--muted);font-size:12px;min-height:44px}
 .toast-message {position:fixed;bottom:25px;left:50%;transform:translateX(-50%);max-width:calc(100% - 30px);background:var(--action);color:var(--on-action);z-index:100;padding:14px 20px;border-radius:18px;font-size:12px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px #00000020}
+.dialog-position {--dialog-x:-50%;--dialog-y:-50%;top:50%;left:50%;transform:translate(var(--dialog-x),var(--dialog-y));max-height:calc(100dvh - 2rem);overflow-y:auto;overscroll-behavior:contain}
+.approval-subject {display:block;max-width:100%;overflow-wrap:anywhere;user-select:all;padding:12px;background:var(--soft);border-radius:8px;font-size:13px}
 [data-slot='dialog-overlay'] {background:#101b1860;backdrop-filter:blur(5px)}
 [data-slot='dialog-content'].app-dialog {background:var(--panel);color:var(--ink);border:0;border-radius:30px;max-width:460px;max-height:88dvh;padding:29px 25px 25px;display:block;overflow-y:auto;box-shadow:0 20px 80px #00000030;scrollbar-width:thin}
 [data-slot='dialog-header'] {text-align:left;padding-right:18px;gap:9px}
@@ -300,7 +302,7 @@ svg {flex-shrink:0}
   .preview-studio {display:block;padding:0;min-height:100dvh}.studio-intro {display:none}.phone-stage {width:100%}.mobile-preview-label {height:25px;background:var(--ground);color:var(--muted);font-size:9px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}.mobile-preview-label span {font-size:8px}
   .phone-shell {width:100%;height:calc(100dvh - 25px);min-height:0;border-radius:0;outline:0;box-shadow:none}.device-status,.device-home-indicator {display:none}.app-header {padding-top:max(17px,env(safe-area-inset-top));padding-bottom:15px;min-height:75px}.phone-content {padding-bottom:calc(112px + env(safe-area-inset-bottom))}.stage-caption {display:none}.page-heading {padding-top:10px}
   .floating-dock {position:absolute;bottom:calc(17px + env(safe-area-inset-bottom))}.money-overview {padding-top:17px}.main-amount {font-size:43px}.vehicle-row {min-height:78px}.review-banner {padding:15px 10px}
-  [data-slot='dialog-content'].app-dialog {top:auto;bottom:0;left:0;transform:none;translate:0 0;width:100%;max-width:100%;max-height:92dvh;border-radius:28px 28px 0 0;padding:12px 23px calc(25px + env(safe-area-inset-bottom));scroll-padding-bottom:20px}
+  [data-slot='dialog-content'].app-dialog {--dialog-x:0px;--dialog-y:0px;top:auto;bottom:0;left:0;width:100%;max-width:100%;max-height:92dvh;border-radius:28px 28px 0 0;padding:24px 23px calc(25px + env(safe-area-inset-bottom));scroll-padding-bottom:20px}
   .sheet-handle {display:block;width:35px;height:4px;background:var(--line);border-radius:5px;margin:0 auto 23px}[data-slot='dialog-close'] {top:29px;right:17px}[data-slot='dialog-title'] {font-size:26px}
   .toast-message {bottom:calc(100px + env(safe-area-inset-bottom));width:max-content;max-width:calc(100% - 30px);font-size:11px;padding:13px 16px}
   .app-dialog [data-slot='button'] {min-height:46px}
@@ -418,8 +420,8 @@ svg {flex-shrink:0}
 [data-slot='dialog-content'].app-dialog[data-state='open'] {animation:sheet-arrive .32s cubic-bezier(.16,1,.3,1)}
 [data-slot='dialog-content'].app-dialog[data-state='closed'] {animation:sheet-leave .16s ease-in forwards}
 [data-slot='dialog-overlay'][data-state='open'] {animation:overlay-arrive .22s ease-out}
-@keyframes sheet-arrive {from {opacity:.5;translate:0 24px}to {opacity:1;translate:0 0}}
-@keyframes sheet-leave {to {opacity:0;translate:0 16px}}
+@keyframes sheet-arrive {from {opacity:.5;transform:translate(var(--dialog-x),calc(var(--dialog-y) + 24px))}to {opacity:1;transform:translate(var(--dialog-x),var(--dialog-y))}}
+@keyframes sheet-leave {to {opacity:0;transform:translate(var(--dialog-x),calc(var(--dialog-y) + 16px))}}
 @keyframes overlay-arrive {from {opacity:0}to {opacity:1}}
 @media (prefers-reduced-motion:reduce) {.production-dock-indicator {display:none}.production-dock:has(.production-dock-indicator)>a.active {background:#fff8ed}}
 .home-summary,.home-fleet,.home-recent {min-width:0}

@@ -1,9 +1,9 @@
 import {canManageBusiness} from '../domain/permissions'
 import {createContext,useCallback,useContext,useEffect,useMemo,useState,type ReactNode} from 'react'
-import {useAuth} from '@clerk/react'
+import {SignOutButton,useAuth} from '@clerk/react'
 import {useLiveQuery} from 'dexie-react-hooks'
 import {WorkspaceDatabase,type QueueItem} from './database'
-import {createWorkspaceClient,getMembership,supabaseTransport,AccessError} from './transport'
+import {createWorkspaceClient,getMembership,supabaseTransport,AccessError,ApprovalRequiredError} from './transport'
 import {SyncEngine} from './sync'
 import {newOperation,validateRecord,type AnyRecord,type Membership,type RecordKind,type RecordState,type Operation} from '../domain/records'
 import type {PublicEnvironment} from '../config/environment'
@@ -27,6 +27,7 @@ export function WorkspaceProvider({config,children,offlineSubject}:{config:Publi
   const [member,setMember]=useState<Membership|null>(null)
   const [loading,setLoading]=useState(true)
   const [accessError,setAccessError]=useState('')
+  const [needsApproval,setNeedsApproval]=useState(false)
   const [syncing,setSyncing]=useState(false)
   const [syncError,setSyncError]=useState('')
   const records=useLiveQuery(()=>db.records.toArray(),[db],[])
@@ -36,10 +37,10 @@ export function WorkspaceProvider({config,children,offlineSubject}:{config:Publi
     setSyncing(true);setSyncError('')
     try {
       const current=await getMembership(client)
-      await db.storeMembership(current);setMember(current)
+      await db.storeMembership(current);setMember(current);setAccessError('');setNeedsApproval(false)
       await engine.run(true)
     } catch(error) {
-      if(error instanceof AccessError){setMember(null);setAccessError(error.message);await db.metadata.put({key:'membership',value:null})}
+      if(error instanceof AccessError){setMember(null);setAccessError(error.message);setNeedsApproval(error instanceof ApprovalRequiredError);await db.metadata.put({key:'membership',value:null})}
       else setSyncError(error instanceof Error?error.message:'Unable to connect. Local work is preserved.')
     } finally {setSyncing(false)}
   },[client,db,engine,isLoaded,isSignedIn])
@@ -70,7 +71,7 @@ export function WorkspaceProvider({config,children,offlineSubject}:{config:Publi
     await enqueue({id:crypto.randomUUID(),record_id:record.id,kind:record.kind,action,expected_version:record.version,data:patch,state,reason,client_time:new Date().toISOString()},draftKey)
   }
   if(loading)return <div className="connection-screen" role="status"><span className="loading-orbit"/><h1>Opening your workspace…</h1><p>Checking this account’s access.</p></div>
-  if(!member)return <div className="connection-screen"><h1>{accessError?'Access needs attention.':'Your workspace is not connected yet.'}</h1><p>{accessError||syncError||'Connect to the internet to verify this account. A previously approved account can use its available offline records.'}</p><button className="plain-primary" onClick={()=>{setAccessError('');void sync()}}>Check access again</button><p className="setup-small">The administrator must approve your Clerk user ID in app_members.</p></div>
+  if(!member)return <div className="connection-screen"><h1>{needsApproval?'Waiting for workspace approval.':accessError?'Access needs attention.':'Your workspace is not connected yet.'}</h1><p>{accessError||syncError||'Connect to the internet to verify this account. A previously approved account can use its available offline records.'}</p>{needsApproval&&<><p className="setup-small">Send this account ID to your administrator. They can approve it in More → Technical administration → Add or change business access.</p><code className="approval-subject">{userId}</code></>}<button className="plain-primary" onClick={()=>{void sync()}}>Check access again</button><SignOutButton><button className="text-action" type="button">Use another Google account</button></SignOutButton></div>
   const choices=localChoices(records,queue,member.clerk_subject)
   return <Workspace.Provider value={{records,choices,queue,member,db,client,sync,syncing,syncError,create,change}}>{children}</Workspace.Provider>
 }

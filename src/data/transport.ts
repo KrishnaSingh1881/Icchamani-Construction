@@ -3,6 +3,7 @@ import type {PublicEnvironment} from '../config/environment.ts'
 import type {AnyRecord,Operation,WriteResult,Membership,Conflict} from '../domain/records.ts'
 
 export class AccessError extends Error {}
+export class ApprovalRequiredError extends AccessError {}
 export type SyncTransport = {
   submit:(operation:Operation)=>Promise<WriteResult>
   pull:(cursor:number)=>Promise<{records:AnyRecord[];cursor:number;has_more:boolean}>
@@ -21,7 +22,7 @@ function throwError(error:{code?:string;message:string}) {
 export async function getMembership(client:SupabaseClient):Promise<Membership> {
   const {data,error}=await client.rpc('current_membership')
   if(error)throwError(error)
-  if(!data?.clerk_subject||!data.active)throw new AccessError('This Google account is not approved for the workspace.')
+  if(!data?.clerk_subject||!data.active)throw new ApprovalRequiredError('Your Google sign-in worked. An administrator still needs to approve this account for the workspace.')
   return data as Membership
 }
 export function supabaseTransport(client:SupabaseClient):SyncTransport {
