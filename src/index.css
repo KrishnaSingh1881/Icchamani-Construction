@@ -331,15 +331,15 @@ svg {flex-shrink:0}
 .plain-primary {background:var(--action);color:var(--on-action);padding:12px 20px;border-radius:13px;min-height:46px;font-size:13px;margin-top:20px}
 .sign-in-screen {min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:25px;padding:25px}.sign-in-screen>p {color:var(--muted);font-size:12px;text-align:center}
 .production-frame {min-height:100dvh;background:var(--ground)}
-.production-app {position:relative;width:100%;min-width:0;margin:0 auto;min-height:100dvh;background:linear-gradient(165deg,var(--phone-top),var(--phone-top) 15%,var(--phone-bottom));display:flex;flex-direction:column}
-.production-app>.app-header {padding-top:max(16px,env(safe-area-inset-top));padding-bottom:8px;min-height:68px}
+.production-app {position:relative;width:100%;min-width:0;margin:0 auto;height:100dvh;overflow:hidden;background:linear-gradient(165deg,var(--phone-top),var(--phone-top) 15%,var(--phone-bottom));display:flex;flex-direction:column}
+.production-app>.app-header {padding-top:max(16px,env(safe-area-inset-top));padding-bottom:8px;min-height:68px;flex-shrink:0}
 .account-presence {position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .account-presence.is-online {--presence-colour:#389c60}
 .account-presence.is-offline {--presence-colour:var(--subtle)}
 .account-presence .presence-badge {position:absolute;right:-2px;bottom:-2px;min-width:0;width:11px;height:11px;padding:0;border:2px solid var(--phone-top);border-radius:50%;background:var(--presence-colour);pointer-events:none;transition:background-color .2s ease;box-shadow:none}
 .account-presence .cl-userButtonBox,.account-presence .cl-userButtonTrigger {display:flex}
-.production-content {padding:0 23px calc(120px + env(safe-area-inset-bottom));flex:1}
-.production-dock {position:fixed;bottom:calc(18px + env(safe-area-inset-bottom))}
+.production-content {padding:0 23px calc(120px + env(safe-area-inset-bottom));flex:1;min-height:0;overflow-y:auto;overscroll-behavior-y:contain}
+.production-dock {position:absolute;bottom:calc(18px + env(safe-area-inset-bottom))}
 .production-dock>a {position:relative;width:60px;height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:25px;color:#cdd0c7;font-size:9px;text-decoration:none}
 .production-dock>a.active {background:#fff8ed;color:#9b5539}
 .production-app .money-breakdown>div {display:flex;flex-direction:column;gap:6px;padding:0 7px;font-size:10px}

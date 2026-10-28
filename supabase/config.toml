@@ -1,0 +1,3 @@
+[functions.push-dispatch]
+verify_jwt = false
+# The dispatcher validates PUSH_DISPATCH_SECRET itself; it is never called by browsers.

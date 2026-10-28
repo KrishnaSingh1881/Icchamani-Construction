@@ -63,7 +63,7 @@ npm run dev
 
 Authentication requires a configured Clerk application, a connected Supabase project, and an approved workspace account.
 
-`VITE_WEB_PUSH_PUBLIC_KEY` is optional. Push delivery requires separately configured server services and a supported installed PWA.
+`VITE_WEB_PUSH_PUBLIC_KEY` is configured in Cloudflare build variables for device notifications. The `push-dispatch` Supabase Edge Function delivers queued events through a scheduled job; private delivery keys stay in Supabase secret storage. On iPhone/iPad, enable notifications from the installed Home Screen app. On Android, use Chrome or the installed app.
 
 ## Development commands
 
