@@ -84,7 +84,7 @@ https://icchamani-construction.gaadihisaab.workers.dev
 
 This is a regular account deployment, without the temporary preview expiry. Static asset hosting is free. The current shared testing deployment uses the existing Clerk development instance; production authentication requires a controlled domain and Clerk production configuration.
 
-The GitHub integration for this existing Worker should use these settings:
+Cloudflare Workers Builds is connected to GitHub with these settings:
 
 - Repository: `KrishnaSingh1881/Icchamani-Construction`
 - Deployment branch: `master`
@@ -93,7 +93,7 @@ The GitHub integration for this existing Worker should use these settings:
 - Deploy command: `npx wrangler deploy`
 - Build variables: `VITE_CLERK_PUBLISHABLE_KEY`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and `VITE_APP_ENV` from the current public configuration.
 
-Connect the repository under the Worker's **Settings → Builds** in Cloudflare. Once connected, pushes to `master` automatically rebuild and update the same hosted URL. The Wrangler Worker name must match `icchamani-construction`.
+Pushes to `master` automatically run the build command and update the same hosted URL when tests and the build pass. Manage the connection under the Worker's **Settings → Builds** in Cloudflare. Preview builds are disabled. The Wrangler Worker name must match `icchamani-construction`.
 
 For a manual deployment from this checkout, with the public settings in `.env.local`:
 
