@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env*
+!.env.example
+*.tsbuildinfo
+.wrangler/
+.supabase/
+supabase/.temp/
+supabase/
+.clerk/
+backups/
+*.ghbackup
+*.dump
