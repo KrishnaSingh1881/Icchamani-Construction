@@ -1,3 +1,7 @@
 [functions.push-dispatch]
 verify_jwt = false
 # The dispatcher validates PUSH_DISPATCH_SECRET itself; it is never called by browsers.
+
+[functions.clerk-sync]
+verify_jwt = false
+# Clerk's webhook signature is verified against CLERK_WEBHOOK_SIGNING_SECRET.

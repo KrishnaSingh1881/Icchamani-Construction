@@ -51,7 +51,7 @@ export type Operation = {
 export type Conflict = {id:string;record_id:string;proposed_record_id:string;kind:RecordKind;reason:string;participants:string[];proposed_data:Record<string,unknown>;proposed_state:RecordState;current_data:Record<string,unknown>;current_version:number;status:'open'|'resolved';created_at:string;resolved_at:string|null;resolution:string|null}
 export type AuditEvent = {id:number;record_id:string|null;actor:string;action:string;before_data:unknown;after_data:unknown;reason:string;created_at:string;client_time?:string|null}
 export type WriteResult = {status:'accepted';record:AnyRecord}|{status:'needs_review';conflict_id:string}|{status:'rejected';code:string;message:string}
-export type Membership = {clerk_subject:string;display_name:string;role:'business_user'|'technical_admin';active:boolean}
+export type Membership = {clerk_subject:string;display_name:string;role:'business_user'|'technical_admin';active:boolean;clerk_updated_at?:number;clerk_deleted?:boolean}
 
 export function validateRecord(kind:RecordKind,data:unknown,state:RecordState) {
   const parsed=schemas[kind].parse(data)

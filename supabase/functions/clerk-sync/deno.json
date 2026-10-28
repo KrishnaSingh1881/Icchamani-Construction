@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.118.0",
+    "@clerk/backend/webhooks": "npm:@clerk/backend@3.26.3/webhooks"
+  },
+  "compilerOptions": {"strict": true}
+}
