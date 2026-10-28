@@ -4,12 +4,14 @@ import {useWorkspace} from '../data/WorkspaceProvider'
 import {Icon} from '../components/Icon'
 import {useAppearance} from '../components/AppearanceProvider'
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '../components/ui/dialog'
-import {Button} from '../components/ui/button'
 import {Badge} from '../components/ui/badge'
 import {ToggleGroup,ToggleGroupItem} from '../components/ui/toggle-group'
 import AnimatedContent from '../components/AnimatedContent'
-import {RecordEditor,kindLabels,recordName} from './RecordEditor'
+import {RecordEditor,kindLabels} from './RecordEditor'
 import {Home} from './Home'
+import {Ledgers} from './Ledgers'
+import {InstallApp} from './InstallApp'
+import {Button} from '../components/ui/button'
 import gsap from 'gsap'
 import {useGSAP} from '@gsap/react'
 import {PushSettings} from './PushSettings'
@@ -20,8 +22,6 @@ import {RecordsPage} from './RecordsPage'
 import {History,Notifications,Reviews,SyncCenter} from './Activity'
 import {repeatedWork} from '../domain/local-records'
 import {businessDate} from '../domain/money'
-import {formatMoney} from '../domain/money'
-import {clientAccount} from '../domain/accounting'
 import type {AnyRecord,RecordKind} from '../domain/records'
 
 gsap.registerPlugin(useGSAP)
@@ -57,12 +57,11 @@ export function WorkspaceApp({accountControl}:{accountControl:ReactNode}) {
   const repeat=(record:AnyRecord)=>setEditor({kind:record.kind,initialData:repeatedWork(record,businessDate())})
   return <div className="production-frame" ref={frame}><div className="production-app"><header className="app-header"><NavLink to="/" className="app-brand"><Icon name="route-linear" size={25}/><span>GaadiHisaab<small>Icchamani Construction</small></span></NavLink><div className="header-actions"><button className="icon-button" aria-label="Synchronise workspace" onClick={()=>void sync()} disabled={syncing}><Icon name="restart-linear" size={20}/></button><div className={`account-presence ${online?'is-online':'is-offline'}`} title={online?'Online':'Offline'}><span className="sr-only" role="status">{online?'Online':'Offline'}</span>{accountControl}<Badge className="presence-badge" aria-hidden="true"/></div></div></header>{syncError&&<p className="sync-error" role="alert">{syncError} Your local entries are preserved.</p>}<main className="production-content"><Routes>
     <Route path="/" element={<Home add={add} edit={record=>setEditor({kind:record.kind,record})}/>}/>
-    <Route path="/work" element={<RecordsPage title="A day’s work." kinds={['work','expense','payment','expense_settlement']} add={add} repeat={repeat} edit={record=>setEditor({kind:record.kind,record})}/>}/>
+    <Route path="/work" element={<RecordsPage key="work" title="A day’s work." kinds={['work','expense','payment','expense_settlement']} add={add} repeat={repeat} edit={record=>setEditor({kind:record.kind,record})}/>}/>
     <Route path="/clients" element={<ClientsPage add={add}/>}/>
-    <Route path="/ledgers" element={<RecordsPage title="Every payment, accounted for." kinds={['driver_payment','partner_entry']} add={add} repeat={repeat} edit={record=>setEditor({kind:record.kind,record})}/>}/>
+    <Route path="/ledgers" element={<Ledgers add={add} edit={record=>setEditor({kind:record.kind,record})}/>}/>
     <Route path="/more" element={<More add={add}/>}/>
     <Route path="/reports" element={<Reports/>}/><Route path="/reviews" element={<Reviews/>}/><Route path="/notifications" element={<Notifications/>}/><Route path="/sync" element={<SyncCenter/>}/><Route path="/activity" element={<History/>}/>
-    <Route path="/saved/:kind" element={<RecordsPage title="Saved information" kinds={['vehicle','client','driver','partner','material','route','site','expense_category']} add={add} repeat={repeat} edit={record=>setEditor({kind:record.kind,record})}/>}/>
     <Route path="/admin" element={member.role==='technical_admin'?<Admin/>:<Navigate to="/" replace/>}/>
     <Route path="*" element={<Navigate to="/" replace/>}/>
   </Routes></main><nav className="floating-dock production-dock" aria-label="Main navigation"><div className="production-dock-indicator" aria-hidden="true"/>{navigation.map(n=><NavLink to={n.path} end={n.path==='/'} key={n.path} aria-label={n.name}><Icon name={n.icon} size={23}/><span>{n.name}</span></NavLink>)}</nav><Dialog open={!!editor} onOpenChange={open=>{if(!open)setEditor(null)}}><DialogContent className="app-dialog"><DialogHeader><DialogTitle>{editor?.record?'Edit':'Add'} {editor?kindLabels[editor.kind]:''}</DialogTitle><DialogDescription>Real business records. Amounts remain in your control.</DialogDescription></DialogHeader>{editor&&<RecordEditor key={`${editor.kind}-${editor.record?.id??'new'}`} kind={editor.kind} record={editor.record} initialData={editor.initialData} onClose={()=>setEditor(null)}/>}</DialogContent></Dialog></div></div>
@@ -79,13 +78,10 @@ function More({add}:{add:(kind:RecordKind)=>void}) {
     <div className="appearance-card"><span>Appearance</span><ToggleGroup type="single" value={theme} onValueChange={setTheme} className="appearance-toggle" aria-label="Appearance">
       <ToggleGroupItem value="light" aria-label="Light appearance">Light</ToggleGroupItem><ToggleGroupItem value="dark" aria-label="Dark appearance">Dark</ToggleGroupItem><ToggleGroupItem value="system" aria-label="System appearance">System</ToggleGroupItem>
     </ToggleGroup></div>
-    <div className="section-heading"><h2>Saved information</h2></div>
-    <AnimatedContent className="settings-list" distance={12} duration={.4} stagger={.025} initialOpacity={.65}>
-      {(['vehicle','client','driver','partner','material','route','site','expense_category']as RecordKind[]).map(kind=>member.role==='business_user'&&kind!=='material'?<button key={kind} onClick={()=>add(kind)}><Icon name="add-circle-linear"/><span>Add {kindLabels[kind].toLowerCase()}</span><Icon name="alt-arrow-right-linear" size={18}/></button>:<NavLink className="settings-link" key={kind} to={`/saved/${kind}`}><span>{kindLabels[kind]}</span><Icon name="alt-arrow-right-linear" size={18}/></NavLink>)}
-    </AnimatedContent>
-    <NavLink className="setup-mockup-link" to="/saved/all">Manage saved information<Icon name="arrow-right-linear" size={18}/></NavLink>
+    <div className="vehicle-settings"><div><h2>Vehicles</h2><p>Add vehicles here. Their work and costs appear in Ledgers.</p></div><Button type="button" variant="outline" onClick={()=>add('vehicle')}>Add vehicle</Button></div>
     {member.role==='technical_admin'&&<NavLink className="setup-mockup-link" to="/admin">Technical administration<Icon name="arrow-right-linear" size={18}/></NavLink>}
     <div className="more-notifications"><PushSettings/></div>
+    <InstallApp/>
     <p className="panel-note">{queue.length} local changes awaiting confirmation or review. Clearing this browser’s data can lose changes that have not reached the server.</p>
   </>
 }

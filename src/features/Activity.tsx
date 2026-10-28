@@ -1,4 +1,5 @@
 import {useState} from 'react'
+import {auditChanges} from '../domain/provenance'
 import {NavLink} from 'react-router'
 import {useWorkspace} from '../data/WorkspaceProvider'
 import {useWorkspaceRows} from '../data/useWorkspaceRows'
@@ -14,12 +15,12 @@ const readable=(key:string)=>key.replaceAll('_',' ').replace(/paise$/,'(₹)')
 function FieldValue({name,value}:{name:string;value:unknown}) {
   const {choices}=useWorkspace()
   const record=typeof value==='string'?choices.find(record=>record.id===value):undefined
-  return <>{record?recordName(record):name==='amount_paise'&&typeof value==='number'?formatMoney(value):value===null?'—':typeof value==='object'?JSON.stringify(value):String(value)}</>
+  return <>{record?recordName(record):name==='amount_paise'&&typeof value==='number'?formatMoney(value):value==null?'—':typeof value==='boolean'?(value?'Yes':'No'):typeof value==='object'?JSON.stringify(value):String(value)}</>
 }
 export function History({recordId}:{recordId?:string}) {
   const history=useWorkspaceRows<AuditEvent>('audit_events',recordId)
   const {rows:members}=useWorkspaceRows<Membership>('app_members')
-  return <section className="history-section"><h2>Activity history</h2>{history.error&&<p className="form-error" role="alert">{history.error}</p>}{history.rows.map(event=><details className="record-card" key={event.id}><summary><strong>{readable(event.action)}</strong><p>{members.find(member=>member.clerk_subject===event.actor)?.display_name??event.actor} · {new Date(event.created_at).toLocaleString('en-IN')}</p>{event.reason&&<p>{event.reason}</p>}</summary><div className="history-values"><h3>Before</h3><pre>{JSON.stringify(event.before_data,null,2)}</pre><h3>After</h3><pre>{JSON.stringify(event.after_data,null,2)}</pre></div></details>)}{!history.rows.length&&<p className="panel-note">{history.loading?'Loading history…':'No cached history. Accepted changes appear here after syncing.'}</p>}{history.more&&<Button variant="outline" onClick={history.loadMore}>Load earlier activity</Button>}</section>
+  return <section className="history-section"><h2>Activity history</h2>{history.error&&<p className="form-error" role="alert">{history.error}</p>}{history.rows.map(event=><details open={!!recordId} className="record-card" key={event.id}><summary><strong>{readable(event.action)}</strong><p>{members.find(member=>member.clerk_subject===event.actor)?.display_name??event.actor} · {new Date(event.created_at).toLocaleString('en-IN')}</p>{event.reason&&<p>{event.reason}</p>}</summary><div className="history-values">{auditChanges(event).map(change=><div className="audit-change" key={change.key}><span>{readable(change.key.replace(/^extras\./,''))}</span><div><del><FieldValue name={change.key} value={change.before}/></del><span aria-label="changed to"> → </span><strong><FieldValue name={change.key} value={change.after}/></strong></div></div>)}{event.client_time&&<p className="panel-note">Recorded on device: {new Date(event.client_time).toLocaleString('en-IN')} · confirmed: {new Date(event.created_at).toLocaleString('en-IN')}</p>}</div></details>)}{!history.rows.length&&<p className="panel-note">{history.loading?'Loading history…':'No cached history. Accepted changes appear here after syncing.'}</p>}{history.more&&<Button variant="outline" onClick={history.loadMore}>Load earlier activity</Button>}</section>
 }
 export function Reviews() {
   const {member,records,client,sync}=useWorkspace()
@@ -36,11 +37,11 @@ export function Reviews() {
       await sync()
     }catch(error){setMessage(error instanceof Error?error.message:'Could not resolve this review.')}finally{setBusy('')}
   }
-  return <><div className="page-heading"><h1>Let’s clear it up.</h1><p>Both versions stay visible. Only involved business users can choose.</p></div>{(message||reviews.error)&&<p role="status" className="panel-note">{message||reviews.error}</p>}{reviews.rows.map(review=>{
+  return <><div className="page-heading"><h1>Let’s clear it up.</h1><p>Both versions stay visible. Involved users and administrators can resolve reviews.</p></div>{(message||reviews.error)&&<p role="status" className="panel-note">{message||reviews.error}</p>}{reviews.rows.map(review=>{
     const current=records.find(record=>record.id===review.record_id)
     const currentData=current?.data??review.current_data
     const differences=Object.keys({...currentData,...review.proposed_data}).filter(key=>JSON.stringify(currentData[key as keyof typeof currentData])!==JSON.stringify(review.proposed_data[key]))
-    const involved=member.role==='business_user'&&review.participants.includes(member.clerk_subject)
+    const involved=member.active&&(member.role==='technical_admin'||review.participants.includes(member.clerk_subject))
     return <section className="record-card" key={review.id}><div className="record-top"><span>{readable(review.reason)}</span><span className="badge">{review.status}</span></div><h2>{kindLabels[review.kind]} review</h2><p>{new Date(review.created_at).toLocaleString('en-IN')}</p><div className="comparison-table"><table><caption>Details that differ</caption><thead><tr><th>Field</th><th>Shared record</th><th>Proposed entry</th></tr></thead><tbody>{differences.map(key=><tr key={key}><th scope="row">{readable(key)}</th><td><FieldValue name={key} value={currentData[key as keyof typeof currentData]}/></td><td><FieldValue name={key} value={review.proposed_data[key]}/></td></tr>)}</tbody></table></div>{!differences.length&&<p>The entered details match. Confirm whether this was another legitimate trip.</p>}<p>Shared status: {current?.state??'unknown'} · proposed: {review.proposed_state}</p>{review.status==='resolved'?<p>Decision: {readable(review.resolution??'resolved')}</p>:involved?<><label className="review-reason">Reason<textarea maxLength={2000} value={reason[review.id]??''} onChange={event=>setReason({...reason,[review.id]:event.target.value})} placeholder="Explain this decision for everyone involved"/></label><div className="detail-actions"><Button variant="outline" disabled={!!busy||!reason[review.id]?.trim()} onClick={()=>void resolve(review,'keep_current')}>Keep shared</Button><Button disabled={!!busy||!reason[review.id]?.trim()} onClick={()=>void resolve(review,'use_proposed')}>Use proposed</Button>{review.reason!=='stale_edit'&&<Button variant="outline" disabled={!!busy||!reason[review.id]?.trim()} onClick={()=>void resolve(review,'separate')}>Two separate entries</Button>}</div></>:<p className="panel-note">The involved users will resolve this review.</p>}</section>
   })}{!reviews.rows.length&&<div className="empty-state"><h2>No reviews here.</h2><p>Disagreements involving your account will appear after syncing.</p></div>}{reviews.more&&<Button onClick={reviews.loadMore}>Load more reviews</Button>}</>
 }

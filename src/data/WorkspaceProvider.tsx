@@ -1,3 +1,4 @@
+import {canManageBusiness} from '../domain/permissions'
 import {createContext,useCallback,useContext,useEffect,useMemo,useState,type ReactNode} from 'react'
 import {useAuth} from '@clerk/react'
 import {useLiveQuery} from 'dexie-react-hooks'
@@ -62,7 +63,7 @@ export function WorkspaceProvider({config,children,offlineSubject}:{config:Publi
     // React replays effects in development; the same database must remain reopenable.
     return ()=>{disposed=true;clearInterval(timer);window.removeEventListener('online',refresh);document.removeEventListener('visibilitychange',focus);void client.removeChannel(channel);db.close({disableAutoOpen:false})}
   },[db,client,userId,sync])
-  async function enqueue(operation:Operation,draftKey?:string) {if(member?.role!=='business_user')throw new Error('Only business users can add or change business entries.');await db.queue(operation,draftKey);void sync()}
+  async function enqueue(operation:Operation,draftKey?:string) {if(!canManageBusiness(member))throw new Error('This account is not approved to add or change business entries.');await db.queue(operation,draftKey);void sync()}
   async function create(kind:RecordKind,data:Record<string,unknown>,state:RecordState,draftKey?:string) {const operation=newOperation(kind,data,state);await enqueue(operation,draftKey);return operation.record_id}
   async function change(record:AnyRecord,patch:Record<string,unknown>,state:RecordState,action:Operation['action']='update',reason='',draftKey?:string) {
     validateRecord(record.kind,{...record.data,...patch},state)
