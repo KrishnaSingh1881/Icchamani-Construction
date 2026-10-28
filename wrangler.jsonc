@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "gaadihisaab",
+  "name": "icchamani-construction",
   "compatibility_date": "2026-10-28",
   "assets": {
     "directory": "./dist",

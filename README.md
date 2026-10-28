@@ -76,6 +76,34 @@ npm run preview
 
 The build produces `dist/`, generates the versioned PWA service worker, and checks install assets and offline route handling. PWA installation and service-worker behaviour require a production build served over HTTPS or localhost.
 
+## Hosting
+
+The app is hosted on Cloudflare Workers Static Assets:
+
+https://icchamani-construction.gaadihisaab.workers.dev
+
+This is a regular account deployment, without the temporary preview expiry. Static asset hosting is free. The current shared testing deployment uses the existing Clerk development instance; production authentication requires a controlled domain and Clerk production configuration.
+
+The GitHub integration for this existing Worker should use these settings:
+
+- Repository: `KrishnaSingh1881/Icchamani-Construction`
+- Deployment branch: `master`
+- Root directory: `/`
+- Build command: `npm test && npm run build`
+- Deploy command: `npx wrangler deploy`
+- Build variables: `VITE_CLERK_PUBLISHABLE_KEY`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and `VITE_APP_ENV` from the current public configuration.
+
+Connect the repository under the Worker's **Settings → Builds** in Cloudflare. Once connected, pushes to `master` automatically rebuild and update the same hosted URL. The Wrangler Worker name must match `icchamani-construction`.
+
+For a manual deployment from this checkout, with the public settings in `.env.local`:
+
+```bash
+npm run build
+npx wrangler deploy
+```
+
+Vite embeds the public settings at build time. Cloudflare runtime variables do not change an already-built frontend. Keep secret keys out of `VITE_` variables.
+
 ## Security
 
 Keep credentials in environment configuration and server secret storage. Only browser-safe publishable keys belong in `VITE_` variables. Workspace permissions are enforced by the backend.
