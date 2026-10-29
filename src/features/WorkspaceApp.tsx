@@ -71,7 +71,7 @@ function More({add}:{add:(kind:RecordKind)=>void}) {
   const {member,queue}=useWorkspace();const {preference:theme,setPreference}=useAppearance()
   const setTheme=(value:string)=>{if(value==='light'||value==='dark'||value==='system')setPreference(value)}
   return <>
-    <div className="page-heading"><h1>Make it <strong>yours.</strong></h1><p>{member.display_name} · {member.role.replaceAll('_',' ')}</p></div>
+    <div className="page-heading"><h1>Make it <strong>yours.</strong></h1><p>{member.display_name}{member.email&&<> · {member.email}</>} · {member.role.replaceAll('_',' ')}</p></div>
     <AnimatedContent className="settings-list" trigger="mount" distance={10} duration={.38} stagger={.035} initialOpacity={.6}>
       {[{path:'/reports',name:'Reports and acknowledgements'},{path:'/notifications',name:'Notifications'},{path:'/reviews',name:'Entry reviews'},{path:'/sync',name:'Sync and saved entries'},{path:'/activity',name:'Shared activity history'}].map(item=><NavLink className="settings-link" key={item.path} to={item.path}>{item.name}<Icon name="alt-arrow-right-linear" size={18}/></NavLink>)}
     </AnimatedContent>
